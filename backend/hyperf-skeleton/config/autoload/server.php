@@ -30,6 +30,23 @@ return [
                 'enable_request_lifecycle' => false,
             ],
         ],
+        [
+            'name' => 'chat',
+            'type' => Server::SERVER_WEBSOCKET,
+            'host' => '0.0.0.0',
+            'port' => 9502,
+            'sock_type' => SWOOLE_SOCK_TCP,
+            'settings' => [
+                'open_websocket_close_frame' => true,
+                'heartbeat_idle_time' => 600,
+                'heartbeat_check_interval' => 60,
+            ],
+            'callbacks' => [
+                'open' => [\App\WebSocket\ChatHandler::class, 'onOpen'],
+                'message' => [\App\WebSocket\ChatHandler::class, 'onMessage'],
+                'close' => [\App\WebSocket\ChatHandler::class, 'onClose'],
+            ],
+        ],
     ],
     'settings' => [
         Constant::OPTION_ENABLE_COROUTINE => true,
