@@ -1,0 +1,5 @@
+{
+    "require-dev": {
+        "hyperf/watcher": "^3.1"
+    }
+}
