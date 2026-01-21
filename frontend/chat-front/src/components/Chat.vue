@@ -34,16 +34,28 @@ const text = ref('')
 const status = ref('conectando...')
 let socket = null
 
+const params = new URLSearchParams(window.location.search)
+const user = params.get('user') || 'Anônimo'
+const room = params.get('room') || 'geral'
+
 onMounted(() => {
   socket = new WebSocket('ws://localhost:9502')
 
   socket.onopen = () => {
     status.value = 'conectado'
     console.log('🟢 WebSocket conectado')
+    console.log(`👤 Usuário: ${user}`)
+
+    socket.send(JSON.stringify({
+      type: 'join',
+      user,
+      room,
+    }))
   }
 
   socket.onmessage = (event) => {
-    messages.value.push(event.data)
+    const data = JSON.parse(event.data)
+    messages.value.push(`${data.user}: ${data.text}`)
   }
 
   socket.onclose = () => {
@@ -59,7 +71,13 @@ onMounted(() => {
 
 function send() {
   if (!text.value || status.value !== 'conectado') return
-  socket.send(text.value)
+
+  socket.send(JSON.stringify({
+    type: 'message',
+    user,
+    text: text.value
+  }))
+
   text.value = ''
 }
 </script>
