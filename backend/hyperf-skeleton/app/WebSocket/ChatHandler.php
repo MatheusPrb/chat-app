@@ -66,7 +66,6 @@ class ChatHandler
         }
 
         $fds = $this->redis->sMembers("room:{$room}");
-
         foreach ($fds as $clientFd) {
             if ($server->isEstablished((int)$clientFd)) {
                 $server->push((int)$clientFd, json_encode($message));
@@ -77,11 +76,21 @@ class ChatHandler
     public function onClose($server, int $fd): void
     {
         $room = $this->redis->hGet("fd:{$fd}", 'room');
+        $user = $this->redis->hGet("fd:{$fd}", 'user');
 
         if ($room) {
             $this->redis->sRem("room:{$room}", $fd);
         }
 
         $this->redis->del("fd:{$fd}");
+
+        $fds = $this->redis->sMembers("room:{$room}");
+        foreach ($fds as $clientFd) {
+            $server->push((int)$clientFd, json_encode([
+                'type' => 'system',
+                'user' => $user,
+                'text' => "Saiu na sala {$room}"
+            ]));
+        }
     }
 }
